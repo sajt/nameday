@@ -1,0 +1,90 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Install, update and uninstall functions for the nameday module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+
+function nameday_schema() {
+  $schema['nameday'] = array(
+    'description' => 'Namedays',
+    'fields' => array(
+      'ndid' => array(
+        'description' => 'The primary identifier for a name day.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'month' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'day' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE
+      ),
+      'name' => array(
+        'description' => 'The name in the original language',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      ),
+      'holiday' => array(
+        'description' => 'The holiday name in the original language',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE
+      ),
+    ),
+    'primary key' => array('ndid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+
+function nameday_install() {
+  drupal_install_schema("nameday");
+  variable_set("show_date", TRUE);
+  $dir = drupal_get_path("module", "nameday") . "/datas/";
+  if ($dh = opendir($dir)) {
+    while (($file = readdir($dh)) !== FALSE) {
+      $pathinfo = (pathinfo($file));
+      if ($pathinfo["extension"] == "namedays") {
+        $lang = $pathinfo["filename"];
+        $langfile = file($dir . $file);
+        foreach ($langfile as $row) {
+          $currentrow = split(";", $row);
+          if (count($currentrow) == 3) {
+            $currentrow[3] = "";
+          }
+          db_query("INSERT INTO  {nameday} (month, day, language, name, holiday) VALUES (%d, %d, '%s', '%s', '%s')", $currentrow[0], $currentrow[1], $lang, $currentrow[2], $currentrow[3]);
+        }
+      }
+    }
+    closedir($dh);
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+
+function nameday_uninstall() {
+  drupal_uninstall_schema("nameday");
+  variable_del("show_date");
+}

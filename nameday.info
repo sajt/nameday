@@ -1,0 +1,6 @@
+; $Id$
+name = Name day
+description = Shows a block with actual name day
+core = 6.x
+
+
