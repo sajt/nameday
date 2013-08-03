@@ -1,14 +1,13 @@
 <?php
-// $Id$
+
 /**
  * @file
  * Install, update and uninstall functions for the nameday module.
  */
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
-
 function nameday_schema() {
   $schema['nameday'] = array(
     'description' => 'Namedays',
@@ -54,37 +53,52 @@ function nameday_schema() {
 }
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
-
 function nameday_install() {
-  drupal_install_schema("nameday");
-  variable_set("show_date", TRUE);
-  $dir = drupal_get_path("module", "nameday") . "/datas/";
-  if ($dh = opendir($dir)) {
-    while (($file = readdir($dh)) !== FALSE) {
-      $pathinfo = (pathinfo($file));
-      if ($pathinfo["extension"] == "namedays") {
-        $lang = $pathinfo["filename"];
-        $langfile = file($dir . $file);
-        foreach ($langfile as $row) {
-          $currentrow = split(";", $row);
-          if (count($currentrow) == 3) {
-            $currentrow[3] = "";
-          }
-          db_query("INSERT INTO  {nameday} (month, day, language, name, holiday) VALUES (%d, %d, '%s', '%s', '%s')", $currentrow[0], $currentrow[1], $lang, $currentrow[2], $currentrow[3]);
-        }
+
+  //sets the defaults
+
+  variable_set('nameday_show_date', TRUE);
+  variable_set('nameday_show_holiday', TRUE);
+  variable_set('nameday_date_format', 'small');
+  variable_set('nameday_date_format_custom', '');
+
+  $dir = drupal_get_path("module", "nameday") . "/data/";
+  $files = file_scan_directory($dir, '/.*namedays$/');
+
+  foreach ($files as $curr) {
+    $lang = $curr->name;
+    $langfile = file($curr->uri);
+    foreach ($langfile as $row) {
+      $currentrow = explode(";", $row);
+      if (count($currentrow) == 3) {
+        $currentrow[3] = "";
       }
+      try {
+        $fields = array(
+          'month' => $currentrow[0],
+          'day' => $currentrow[1],
+          'language' => $lang,
+          'name' => $currentrow[2],
+          'holiday'  => $currentrow[3]
+        );
+        $return_value = db_insert('nameday')->fields($fields)->execute();
+      } catch (Exception $e) {
+        drupal_set_message($e->getMessage());
+      }
+
+      //db_query("INSERT INTO  {nameday} (month, day, language, name, holiday) VALUES (%d, %d, '%s', '%s', '%s')", $currentrow[0], $currentrow[1], $lang, $currentrow[2], $currentrow[3]);
     }
-    closedir($dh);
   }
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
-
 function nameday_uninstall() {
-  drupal_uninstall_schema("nameday");
-  variable_del("show_date");
+  variable_del('nameday_show_date');
+  variable_del('nameday_show_holiday');
+  variable_del('nameday_date_format');
+  variable_del('nameday_date_format_custom');
 }

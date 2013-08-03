@@ -1,8 +1,8 @@
-;$Id$
 
 -- SUMMARY --
 
-The nameday module creates a block with the current (in this time only hungarian)
+The nameday module creates a block with the current (in this time only
+hungarian)
 nameday(s) and holiday if it exists
 
 -- REQUIREMENTS --
@@ -25,7 +25,8 @@ your theme directory.
 -- CONTRIBUTE --
 
 You can put your namedays definition to the datas directory. (See the README.txt
-about the format.) If You have one, please send me, and I push it to the next release)
+about the format.) If You have one, please send me, and I push it to the next
+release)
 
 -- SPONSORSHIP --
 
